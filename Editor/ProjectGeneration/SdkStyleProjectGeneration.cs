@@ -14,7 +14,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 {
 	internal class SdkStyleProjectGeneration : ProjectGeneration
 	{
-		internal override GeneratorStyle Style => GeneratorStyle.SDK;
+		internal override string StyleName => "SDK";
 
 		internal class SdkStyleAssemblyNameProvider : AssemblyNameProvider
 		{
@@ -40,6 +40,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			"LaunchProfiles",
 			"SharedProjectReferences",
 			"ReferenceManagerSharedProjects",
+			"ProjectReferences",
 			"ReferenceManagerProjects",
 			"COMReferences",
 			"ReferenceManagerCOM",
@@ -51,18 +52,15 @@ namespace Microsoft.Unity.VisualStudio.Editor
 		{
 			headerBuilder = new StringBuilder();
 
-			headerBuilder.Append(@"<Project>").Append(k_WindowsNewline);
+			headerBuilder.Append(@"<Project ToolsVersion=""Current"">").Append(k_WindowsNewline);
 			headerBuilder.Append(@"  <!-- Generated file, do not modify, your changes will be overwritten (use AssetPostprocessor.OnGeneratedCSProject) -->").Append(k_WindowsNewline);
 
 			// Prevent circular dependency issues see https://github.com/microsoft/vscode-dotnettools/issues/401
-			// We need a dedicated subfolder for each project in obj, otherwise depending on the build order, nuget cache files could be overwritten
-			// We need to do this before common.props, otherwise we'll have a MSB3539 The value of the property "BaseIntermediateOutputPath" was modified after it was used by MSBuild
+			// We need a dedicated subfolder for each project in obj, else depending on the build order, nuget cache files could be overwritten
+			// We need to do this before common.props, else we'll have a MSB3539 The value of the property "BaseIntermediateOutputPath" was modified after it was used by MSBuild
 			headerBuilder.Append(@"  <PropertyGroup>").Append(k_WindowsNewline);
-			headerBuilder.Append($"    <BaseIntermediateOutputPath>{@"Temp\obj\$(MSBuildProjectName)".NormalizePathSeparators()}</BaseIntermediateOutputPath>").Append(k_WindowsNewline);
+			headerBuilder.Append($"    <BaseIntermediateOutputPath>{@"Temp\obj\$(Configuration)\$(MSBuildProjectName)".NormalizePathSeparators()}</BaseIntermediateOutputPath>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>").Append(k_WindowsNewline);
-			headerBuilder.Append(@"    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>").Append(k_WindowsNewline);
-			headerBuilder.Append(@"    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>").Append(k_WindowsNewline);
-			headerBuilder.Append($"    <OutputPath>").Append(properties.OutputPath.NormalizePathSeparators()).Append(@"</OutputPath>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"  </PropertyGroup>").Append(k_WindowsNewline);
 
 			// Supported capabilities
@@ -71,9 +69,14 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			headerBuilder.Append(@"  <PropertyGroup>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <EnableDefaultItems>false</EnableDefaultItems>").Append(k_WindowsNewline);
+			headerBuilder.Append(@"    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <LangVersion>").Append(properties.LangVersion).Append(@"</LangVersion>").Append(k_WindowsNewline);
+			headerBuilder.Append(@"    <Configurations>Debug;Release</Configurations>").Append(k_WindowsNewline);
+			headerBuilder.Append(@"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>").Append(k_WindowsNewline);
+			headerBuilder.Append(@"    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <RootNamespace>").Append(properties.RootNamespace).Append(@"</RootNamespace>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <OutputType>Library</OutputType>").Append(k_WindowsNewline);
+			headerBuilder.Append(@"    <AppDesignerFolder>Properties</AppDesignerFolder>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"    <AssemblyName>").Append(properties.AssemblyName).Append(@"</AssemblyName>").Append(k_WindowsNewline);
 			// In the end, given we use NoConfig/NoStdLib (see below), hardcoding the target framework version will have no impact, even when targeting netstandard/net48 from Unity.
 			// But with SDK style we use netstandard2.1 (net471 for legacy), so 3rd party tools will not fail to work when .NETFW reference assemblies are not installed.
@@ -82,7 +85,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			headerBuilder.Append(@"    <BaseDirectory>.</BaseDirectory>").Append(k_WindowsNewline);
 			headerBuilder.Append(@"  </PropertyGroup>").Append(k_WindowsNewline);
 
-			GetProjectHeaderProperties(properties, headerBuilder);
+			GetProjectHeaderConfigurations(properties, headerBuilder);
 
 			// Explicit references
 			headerBuilder.Append(@"  <PropertyGroup>").Append(k_WindowsNewline);

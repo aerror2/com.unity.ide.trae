@@ -8,11 +8,11 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO;
-using System.Collections;
+using System.Runtime.InteropServices;
+using System.ComponentModel;
 using Debug = UnityEngine.Debug;
 using System.IO;
-using SimpleJSONTrea;
+using SimpleJSON;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -116,7 +116,6 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			sb?.Append(data);
 		}
 
-
 		public static string[] GetProcessWorkspaces(Process process)
 		{
 			if (process == null)
@@ -126,21 +125,21 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			{
 				var workspaces = new List<string>();
 				var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-				string cursorStoragePath;
+				string traeStoragePath;
 
 #if UNITY_EDITOR_OSX
-				cursorStoragePath = Path.Combine(userProfile, "Library", "Application Support", "cursor", "User", "workspaceStorage");
+				traeStoragePath = Path.Combine(userProfile, "Library", "Application Support", "trae", "User", "workspaceStorage");
 #elif UNITY_EDITOR_LINUX
-				cursorStoragePath = Path.Combine(userProfile, ".config", "Cursor", "User", "workspaceStorage");
+				traeStoragePath = Path.Combine(userProfile, ".config", "Trae", "User", "workspaceStorage");
 #else
-				cursorStoragePath = Path.Combine(userProfile, "AppData", "Roaming", "cursor", "User", "workspaceStorage");
+				traeStoragePath = Path.Combine(userProfile, "AppData", "Roaming", "Trae", "User", "workspaceStorage");
 #endif
 				
-				Debug.Log($"[Cursor] Looking for workspaces in: {cursorStoragePath}");
+				Debug.Log($"[Trae] Looking for workspaces in: {traeStoragePath}");
 				
-				if (Directory.Exists(cursorStoragePath))
+				if (Directory.Exists(traeStoragePath))
 				{
-					foreach (var workspaceDir in Directory.GetDirectories(cursorStoragePath))
+					foreach (var workspaceDir in Directory.GetDirectories(traeStoragePath))
 					{
 						try
 						{
@@ -199,7 +198,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 				}
 				else
 				{
-					Debug.LogWarning($"[Trae] Workspace storage directory not found: {cursorStoragePath}");
+					Debug.LogWarning($"[Trae] Workspace storage directory not found: {traeStoragePath}");
 				}
 
 				return workspaces.Distinct().ToArray();
@@ -211,5 +210,4 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			}
 		}
 	}
-
 }

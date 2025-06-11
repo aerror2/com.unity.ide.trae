@@ -1,7 +1,7 @@
 {
-  "name": "com.aerror2.ide.trae",
+  "name": "com.aerro2.ide.trae",
   "displayName": "Trae Editor",
-  "description": "Code editor integration for supporting Trae Editor  as code editor for unity. Adds support for generating csproj files for intellisense purposes, auto discovery of installations, etc.",
+  "description": "Trae editor integration for supporting Trae as code editor for unity. Adds support for generating csproj files for intellisense purposes, auto discovery of installations, etc.",
   "version": "1.0.0",
   "unity": "2019.4",
   "unityRelease": "25f1",
@@ -9,6 +9,6 @@
     "com.unity.test-framework": "1.1.9"
   },
   "_upm": {
-    "changelog": " Add support for Trae Editor"
+    "changelog": "Integration:\n\n- Add support for Trae"
   }
 }

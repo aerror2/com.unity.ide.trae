@@ -1,48 +1,5 @@
 # Code Editor Package for Visual Studio
 
-
-[2.0.24] 2025-06-11
-
-我已经成功地为 Unity 的 Visual Studio 集成包添加了对 Trea AI 编辑器的支持。以下是我完成的工作：
-
-## 创建的文件
-1. 创建了 VisualStudioTreaInstallation.cs 文件，该文件实现了 VisualStudioInstallation 抽象类，提供了对 Trea AI 编辑器的支持。该类包含以下功能：
-   
-   - 发现安装在系统上的 Trea AI 编辑器
-   - 支持在不同操作系统（Windows、macOS、Linux）上查找 Trea AI
-   - 创建必要的配置文件（.trea 目录下的 launch.json、settings.json 和 extensions.json）
-   - 实现打开文件和项目的功能
-2. 创建了对应的 .meta 文件，确保 Unity 能够正确识别新添加的脚本文件。
-## 修改的文件
-修改了 Discovery.cs 文件，在以下三个方法中添加了对 Trea AI 的支持：
-
-1. GetVisualStudioInstallations() 方法：添加了对 VisualStudioTreaInstallation.GetVisualStudioInstallations() 的调用，使 Unity 能够发现系统上安装的 Trea AI 编辑器。
-2. TryDiscoverInstallation() 方法：添加了对 VisualStudioTreaInstallation.TryDiscoverInstallation() 的调用，使 Unity 能够识别 Trea AI 编辑器路径。
-3. Initialize() 方法：添加了对 VisualStudioTreaInstallation.Initialize() 的调用，确保 Trea AI 编辑器在 Unity 启动时正确初始化。
-## 功能说明
-现在，Unity 项目可以使用 Trea AI 作为代码编辑器了。当用户在 Unity 的外部工具设置中选择 Trea AI 时，Unity 将能够：
-
-- 自动发现系统上安装的 Trea AI 编辑器
-- 创建必要的配置文件，优化 Unity 项目的编辑体验
-- 支持从 Unity 直接打开脚本文件到 Trea AI 编辑器
-- 支持 Unity 项目的调试功能
-这些更改与现有的 Visual Studio 和 Visual Studio Code 支持保持一致，确保了无缝的集成体验。
-
-
-## [2.0.23] - 2025-02-03
-
-Integration:
-
-- Monitor `additionalfile` extension by default.
-- Try opening a Visual Studio Code workspace if there's one (`.code-workspace` file in the Unity project).
-
-Project generation:
-
-- Identify `asset`, `meta`, `prefab` and `unity` files as `yaml` (Visual Studio Code).
-- Add `sln`/`csproj` file nesting (Visual Studio Code).
-- Improve SDK style project generation.
-
-
 ## [2.0.22] - 2023-10-03
 
 Integration:
@@ -56,6 +13,7 @@ Project generation:
 - Mark referenced assemblies as private (to not copy extra files to output directory when building).
 - Add Unity capability to SDK-Style projects.
 - Prevent circular dependency errors with SDK-Style projects.
+
 
 ## [2.0.21] - 2023-09-05
 
