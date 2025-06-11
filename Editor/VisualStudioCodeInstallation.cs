@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using SimpleJSON;
+using SimpleJSONTrea;
 using IOPath = System.IO.Path;
 
 namespace Microsoft.Unity.VisualStudio.Editor
