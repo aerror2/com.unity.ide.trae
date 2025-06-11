@@ -32,6 +32,9 @@ namespace Microsoft.Unity.VisualStudio.Editor
 		{
 			try
 			{
+
+				if (VisualStudioTreaInstallation.TryDiscoverInstallation(editorPath, out installation))
+					return true;
 #if UNITY_EDITOR_WIN
 				if (VisualStudioForWindowsInstallation.TryDiscoverInstallation(editorPath, out installation))
 					return true;
@@ -42,8 +45,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 				if (VisualStudioCodeInstallation.TryDiscoverInstallation(editorPath, out installation))
 					return true;
 				
-				if (VisualStudioTreaInstallation.TryDiscoverInstallation(editorPath, out installation))
-					return true;
+			
 			}
 			catch (IOException)
 			{

@@ -18,7 +18,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 	internal class VisualStudioTreaInstallation : VisualStudioInstallation
 	{
 		private static readonly IGenerator _generator = GeneratorFactory.GetInstance(GeneratorStyle.SDK);
-
+	
 		public override bool SupportsAnalyzers
 		{
 			get
@@ -403,21 +403,49 @@ namespace Microsoft.Unity.VisualStudio.Editor
 
 		public override bool Open(string path, int line, int column, string solution)
 		{
-			var application = Path;
+			// var application = Path;
 
-			line = Math.Max(1, line);
+			// line = Math.Max(1, line);
+			// column = Math.Max(0, column);
+
+			// var directory = IOPath.GetDirectoryName(solution);
+			// var workspace = TryFindWorkspace(directory);
+
+			// var target = workspace ?? directory;
+
+			// ProcessRunner.Start(string.IsNullOrEmpty(path)
+			// 	? ProcessStartInfoFor(application, $"\"{ target}\"")
+			// 	: ProcessStartInfoFor(application, $"\"{ target}\" -g \"{path}\":{line}:{column}"));
+
+			// return true;
+				line = Math.Max(1, line);
 			column = Math.Max(0, column);
 
 			var directory = IOPath.GetDirectoryName(solution);
-			var workspace = TryFindWorkspace(directory);
+			var application = Path;
 
-			var target = workspace ?? directory;
+			var existingProcess = FindRunningCursorWithSolution(directory);
+			if (existingProcess != null) {
+				try {
+					var args = string.IsNullOrEmpty(path) ? 
+						$"--reuse-window \"{directory}\"" : 
+						$"--reuse-window -g \"{path}\":{line}:{column}";
+					
+					ProcessRunner.Start(ProcessStartInfoFor(application, args));
+					return true;
+				}
+				catch (Exception ex) {
+					UnityEngine.Debug.LogError($"[Cursor] Error using existing instance: {ex}");
+				}
+			}
 
-			ProcessRunner.Start(string.IsNullOrEmpty(path)
-				? ProcessStartInfoFor(application, $"\"{ target}\"")
-				: ProcessStartInfoFor(application, $"\"{ target}\" -g \"{path}\":{line}:{column}"));
-
+			var newArgs = string.IsNullOrEmpty(path) ?
+				$"--new-window \"{directory}\"" :
+				$"--new-window \"{directory}\" -g \"{path}\":{line}:{column}";
+			
+			ProcessRunner.Start(ProcessStartInfoFor(application, newArgs));
 			return true;
+			
 		}
 
 		private static string TryFindWorkspace(string directory)
@@ -444,5 +472,64 @@ namespace Microsoft.Unity.VisualStudio.Editor
 		public static void Initialize()
 		{
 		}
+
+		private Process FindRunningCursorWithSolution(string solutionPath) {
+			var normalizedTargetPath = solutionPath.Replace('\\', '/').TrimEnd('/').ToLowerInvariant();
+			
+#if UNITY_EDITOR_WIN
+			// Keep as is for Windows platform since path already includes drive letter
+#else
+			// Ensure path starts with / for macOS and Linux platforms
+			if (!normalizedTargetPath.StartsWith("/")) {
+				normalizedTargetPath = "/" + normalizedTargetPath;
+			}
+#endif
+			
+			var processes = new List<Process>();
+			
+			// Get process name list based on different operating systems
+#if UNITY_EDITOR_OSX
+			processes.AddRange(Process.GetProcessesByName("Trae"));
+			processes.AddRange(Process.GetProcessesByName("Trae Helper"));
+#elif UNITY_EDITOR_LINUX
+			processes.AddRange(Process.GetProcessesByName("Trae"));
+			processes.AddRange(Process.GetProcessesByName("Trae"));
+#else
+			processes.AddRange(Process.GetProcessesByName("trae"));
+#endif
+			
+			foreach (var process in processes) {
+				try {
+					var workspaces = ProcessRunner.GetProcessWorkspaces(process);
+					if (workspaces != null && workspaces.Length > 0) {
+						foreach (var workspace in workspaces) {
+							var normalizedWorkspaceDir = workspace.Replace('\\', '/').TrimEnd('/').ToLowerInvariant();
+							
+#if UNITY_EDITOR_WIN
+							// Keep as is for Windows platform
+#else
+							// Ensure path starts with / for macOS and Linux platforms
+							if (!normalizedWorkspaceDir.StartsWith("/")) {
+								normalizedWorkspaceDir = "/" + normalizedWorkspaceDir;
+							}
+#endif
+
+							if (string.Equals(normalizedWorkspaceDir, normalizedTargetPath, StringComparison.OrdinalIgnoreCase) ||
+								normalizedTargetPath.StartsWith(normalizedWorkspaceDir + "/", StringComparison.OrdinalIgnoreCase) ||
+								normalizedWorkspaceDir.StartsWith(normalizedTargetPath + "/", StringComparison.OrdinalIgnoreCase))
+							{
+								return process;
+							}
+						}
+					}
+				}
+				catch (Exception ex) {
+					UnityEngine.Debug.LogError($"[Cursor] Error checking process: {ex}");
+					continue;
+				}
+			}
+			return null;
+		}
+
 	}
 }
