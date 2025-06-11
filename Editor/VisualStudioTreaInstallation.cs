@@ -76,6 +76,26 @@ namespace Microsoft.Unity.VisualStudio.Editor
 #endif
 		}
 
+#if UNITY_EDITOR_OSX
+		[System.Runtime.InteropServices.DllImport ("libc")]
+		private static extern int readlink(string path, byte[] buffer, int buflen);
+
+		internal static string GetRealPath(string path)
+		{
+			byte[] buf = new byte[512];
+			int ret = readlink(path, buf, buf.Length);
+			if (ret == -1) return path;
+			char[] cbuf = new char[512];
+			int chars = System.Text.Encoding.Default.GetChars(buf, 0, ret, cbuf, 0);
+			return new String(cbuf, 0, chars);
+		}
+#else
+		internal static string GetRealPath(string path)
+		{
+			return path;
+		}
+#endif
+
 		[Serializable]
 		internal class VisualStudioTreaManifest
 		{

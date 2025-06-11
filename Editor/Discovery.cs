@@ -26,6 +26,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			
 			foreach (var installation in VisualStudioTreaInstallation.GetVisualStudioInstallations())
 				yield return installation;
+		}
 
 		public static bool TryDiscoverInstallation(string editorPath, out IVisualStudioInstallation installation)
 		{
